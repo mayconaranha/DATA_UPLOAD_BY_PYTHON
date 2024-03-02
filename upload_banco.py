@@ -2,6 +2,7 @@ import pandas as pd
 import numpy
 import time
 import sqlalchemy
+import datetime
 from conectar_banco import conectar_banco
 from conversao_minutos import convert
 
@@ -41,23 +42,25 @@ df = pd.read_excel('C:\\Users\\mayco\\Desktop\\PROJETOS PYTHON\\BASES\\IMPORT_NO
 
 # CONVERSÃO PARA DATA
 df['DATA'] = pd.to_datetime(df['DATA'])
-print(f"Leitura do arquivo bem-sucedida")
+print(f"Leitura do arquivo bem-sucedida.")
 
 # IDENTIFICANDO DATA MIN/MAX
 data_min = df['DATA'].min()
 data_max = df['DATA'].max()
 
+
 # DELETANDO NO SQL PARA NÃO TER DUPLICIDADE
 query_delete = f"DELETE FROM TBL_D_PESSOAS WHERE DATA >= '{data_min}' AND DATA <= '{data_max}'"
 
-# EXECUTANDO QUERY
+# EXECUTANDO QUERY DELETE
 cursor = conn.cursor()
 cursor.execute(query_delete)
 conn.commit()
 
-#insiro dataframe ao banco
+cursor = conn.cursor()
+# INSERT NO BANCO (EM VALUES O GETDATE ESTÁ IMPORTANDO A HORA QUE ESTÁ SENDO POPULADO OS DADOS)
 for index, row in df.iterrows():
-    cursor.execute("INSERT INTO TBL_D_PESSOAS (ID,NOME,IDADE,SEXO,DATA) VALUES (?,?,?,?,?)", row.ID, row.NOME, row.IDADE, row.SEXO, row.DATA)
+    cursor.execute("INSERT INTO TBL_D_PESSOAS (DATA_IMPORT,ID,NOME,IDADE,SEXO,DATA) VALUES (GETDATE(),?,?,?,?,?)", row.ID, row.NOME, row.IDADE, row.SEXO, row.DATA)
 conn.commit()
 print("Importação ao banco bem-sucedida!")
 
